@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07060e" />
+    <title>電脳雀卓 SIGNAL ― 入口</title>
+    <meta name="description" content="電脳雀卓 SIGNAL の入口です。ここから今の卓に入れます。" />
+    <meta property="og:title" content="電脳雀卓 SIGNAL" />
+    <meta property="og:description" content="ここから今の卓に入れます。" />
+    <meta property="og:image" content="https://titotiyozenkouxyz.github.io/signal/icon-512.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="icon-512.png" />
+    <!--
+      電脳雀卓 SIGNAL の固定の入口 (2026-10-23 ユーザーの依頼: 公開アドレスが起動のたびに変わるので、友達には固定のリンクを渡したい)。
+      本番が起動すると scripts/door.mjs が同じリポジトリの url.json に今のアドレスを書き込む。このページはそれを読んで「ここから開く」を出す。
+      元のファイルは 麻雀 リポジトリの tools/door/index.html (ここを直したら node scripts/door.mjs --page で載せ直す)
+    -->
+    <style>
+      :root {
+        --bg: #07060e;
+        --gold: #e8c060;
+        --cyan: #5fe0ff;
+        --pink: #ff4fd8;
+        --text: #ece8f6;
+        --muted: rgba(236, 232, 246, 0.6);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        overflow: hidden;
+        background:
+          radial-gradient(ellipse at 50% 30%, rgba(95, 224, 255, 0.12), transparent 60%),
+          radial-gradient(ellipse at 50% 110%, rgba(255, 79, 216, 0.16), transparent 55%),
+          var(--bg);
+      }
+      .grid {
+        position: fixed;
+        inset: -30% -10% -10%;
+        background:
+          linear-gradient(rgba(95, 224, 255, 0.07) 1px, transparent 1px) 0 0 / 34px 34px,
+          linear-gradient(90deg, rgba(95, 224, 255, 0.07) 1px, transparent 1px) 0 0 / 34px 34px;
+        transform: perspective(520px) rotateX(58deg) translateY(28%);
+        animation: scroll 5s linear infinite;
+        pointer-events: none;
+      }
+      @keyframes scroll {
+        to {
+          background-position:
+            0 34px,
+            0 0;
+        }
+      }
+      .card {
+        position: relative;
+        width: min(460px, 100%);
+        padding: 30px 24px 26px;
+        text-align: center;
+        border: 1px solid rgba(232, 192, 96, 0.45);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(14, 10, 32, 0.92), rgba(6, 4, 16, 0.94));
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.6),
+          0 0 40px rgba(95, 224, 255, 0.12);
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 8px;
+        border: 1px solid rgba(95, 224, 255, 0.15);
+        border-radius: 9px;
+        pointer-events: none;
+      }
+      .kicker {
+        font-size: 11px;
+        letter-spacing: 0.4em;
+        color: var(--cyan);
+      }
+      h1 {
+        margin: 10px 0 2px;
+        font-size: clamp(34px, 11vw, 52px);
+        letter-spacing: 0.08em;
+        font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+        color: var(--gold);
+        text-shadow: 0 0 18px rgba(232, 192, 96, 0.45);
+      }
+      .signal {
+        display: inline-block;
+        font-weight: 900;
+        font-size: 20px;
+        letter-spacing: 0.3em;
+        color: #fff;
+        text-shadow:
+          2px 0 var(--cyan),
+          -2px 0 var(--pink),
+          0 0 14px rgba(95, 224, 255, 0.6);
+      }
+      .status {
+        margin: 22px 0 18px;
+        font-size: 14px;
+        line-height: 1.8;
+        color: var(--muted);
+        min-height: 3.6em;
+      }
+      .status b {
+        color: var(--text);
+      }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: #888;
+        vertical-align: 1px;
+      }
+      .dot.ok {
+        background: #4ef08a;
+        box-shadow: 0 0 10px #4ef08a;
+      }
+      .dot.wait {
+        background: var(--gold);
+        animation: blink 1s steps(2) infinite;
+      }
+      .dot.ng {
+        background: #ff5a6e;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      .go {
+        display: inline-block;
+        min-width: 240px;
+        padding: 15px 28px;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        color: #061018;
+        text-decoration: none;
+        background: linear-gradient(180deg, #8ff0ff, #2fb8e0);
+        clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+        box-shadow: 0 0 24px rgba(95, 224, 255, 0.5);
+      }
+      .go[aria-disabled='true'] {
+        pointer-events: none;
+        filter: grayscale(1) brightness(0.6);
+      }
+      .auto {
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .auto button {
+        margin-left: 6px;
+        padding: 2px 10px;
+        font: inherit;
+        color: var(--text);
+        background: none;
+        border: 1px solid rgba(236, 232, 246, 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .addr {
+        margin-top: 18px;
+        font-size: 11px;
+        color: rgba(236, 232, 246, 0.4);
+        word-break: break-all;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .grid,
+        .dot.wait {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid" aria-hidden="true"></div>
+    <main class="card">
+      <div class="kicker">DENNOU JANTAKU ／ ENTRANCE</div>
+      <h1>電脳雀卓</h1>
+      <span class="signal">SIGNAL</span>
+      <p class="status" id="status"><span class="dot wait"></span>今の卓のアドレスを確かめています…</p>
+      <a class="go" id="go" href="#" aria-disabled="true">ここから開く</a>
+      <div class="auto" id="auto" hidden></div>
+      <div class="addr" id="addr"></div>
+    </main>
+    <script>
+      (function () {
+        var REPO = 'titotiyozenkouxyz/signal';
+        var statusEl = document.getElementById('status');
+        var go = document.getElementById('go');
+        var autoEl = document.getElementById('auto');
+        var addrEl = document.getElementById('addr');
+        var timer = null;
+
+        function setStatus(kind, html) {
+          statusEl.innerHTML = '<span class="dot ' + kind + '"></span>' + html;
+        }
+        // 固定リンクに付けた ?story-editor などは、そのまま行き先に付ける
+        function target(url) {
+          return url.replace(/\/+$/, '') + '/' + location.search + location.hash;
+        }
+        function fmt(at) {
+          var d = new Date(at);
+          if (isNaN(d.getTime())) return '';
+          return d.getMonth() + 1 + '月' + d.getDate() + '日 ' + d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
+        }
+        // いちばん新しいアドレス: GitHub の API (すぐ反映) → だめなら同じページの url.json (反映に1分ほどかかる)
+        function readUrl() {
+          return fetch('https://api.github.com/repos/' + REPO + '/contents/url.json', { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-store' })
+            .then(function (r) {
+              if (!r.ok) throw new Error(String(r.status));
+              return r.json();
+            })
+            .catch(function () {
+              return fetch('url.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+                return r.json();
+              });
+            });
+        }
+        // 開いているか: 相手のサーバーが応えれば (中身は読めなくてよい) 開いている。アドレスごと無ければ止まっている
+        function reachable(url) {
+          var ctrl = 'AbortController' in window ? new AbortController() : null;
+          var t = setTimeout(function () {
+            if (ctrl) ctrl.abort();
+          }, 8000);
+          return fetch(url.replace(/\/+$/, '') + '/manifest.webmanifest?t=' + Date.now(), { mode: 'no-cors', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
+            .then(function () {
+              return true;
+            })
+            .catch(function () {
+              return false;
+            })
+            .finally(function () {
+              clearTimeout(t);
+            });
+        }
+        function startAuto(href) {
+          var left = 3;
+          autoEl.hidden = false;
+          var draw = function () {
+            autoEl.innerHTML = left + '秒後に自動で開きます<button type="button" id="stop">止める</button>';
+            document.getElementById('stop').onclick = function () {
+              clearInterval(timer);
+              autoEl.textContent = '自動で開くのを止めました';
+            };
+          };
+          draw();
+          timer = setInterval(function () {
+            left--;
+            if (left <= 0) {
+              clearInterval(timer);
+              location.href = href;
+              return;
+            }
+            draw();
+          }, 1000);
+        }
+
+        readUrl()
+          .then(function (j) {
+            if (!j || !j.url) throw new Error('no url');
+            var href = target(j.url);
+            go.href = href;
+            go.removeAttribute('aria-disabled');
+            addrEl.textContent = '今のアドレス: ' + j.url + (j.at ? ' (' + fmt(j.at) + ' に起動)' : '');
+            return reachable(j.url).then(function (ok) {
+              if (ok) {
+                setStatus('ok', '<b>卓は開いています。</b><br />下のボタンから入ってください。');
+                startAuto(href);
+              } else {
+                setStatus('ng', '<b>いまは卓が止まっているかもしれません。</b><br />開けないときは、少し待ってからこのページを開き直してください。');
+              }
+            });
+          })
+          .catch(function () {
+            setStatus('ng', '<b>今のアドレスを読めませんでした。</b><br />少し待ってから、このページを開き直してください。');
+          });
+      })();
+    </script>
+  </body>
+</html>
